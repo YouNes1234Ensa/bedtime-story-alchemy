@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,10 +45,10 @@ const StoryForm = ({ onSubmit, isGenerating }: StoryFormProps) => {
     { value: 'prefer-not-to-say', label: 'Prefer not to say' }
   ];
 
-  // Auto-advance logic
+  // Auto-advance logic (skip step 1 - age)
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (isStepValid() && currentStep < 4) {
+      if (isStepValid() && currentStep > 1 && currentStep < 5) {
         setCurrentStep(prev => prev + 1);
       }
     }, 800); // Small delay for better UX
@@ -72,6 +71,12 @@ const StoryForm = ({ onSubmit, isGenerating }: StoryFormProps) => {
 
   const handleStyleSelect = (style: string) => {
     setFormData(prev => ({ ...prev, style }));
+  };
+
+  const handleNext = () => {
+    if (isStepValid() && currentStep < 5) {
+      setCurrentStep(prev => prev + 1);
+    }
   };
 
   const handleBack = () => {
@@ -264,6 +269,17 @@ const StoryForm = ({ onSubmit, isGenerating }: StoryFormProps) => {
               >
                 Back
               </Button>
+
+              {currentStep === 1 && (
+                <Button
+                  onClick={handleNext}
+                  disabled={!isStepValid()}
+                  className="px-6"
+                >
+                  Next
+                  <ChevronRight className="w-4 h-4 ml-2" />
+                </Button>
+              )}
 
               {currentStep === 5 && (
                 <Button
