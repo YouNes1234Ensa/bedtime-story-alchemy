@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -46,6 +46,17 @@ const StoryForm = ({ onSubmit, isGenerating }: StoryFormProps) => {
     { value: 'prefer-not-to-say', label: 'Prefer not to say' }
   ];
 
+  // Auto-advance logic
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (isStepValid() && currentStep < 4) {
+        setCurrentStep(prev => prev + 1);
+      }
+    }, 800); // Small delay for better UX
+
+    return () => clearTimeout(timer);
+  }, [formData, currentStep]);
+
   const handleInterestToggle = (interest: string) => {
     setFormData(prev => ({
       ...prev,
@@ -55,10 +66,12 @@ const StoryForm = ({ onSubmit, isGenerating }: StoryFormProps) => {
     }));
   };
 
-  const handleNext = () => {
-    if (currentStep < 5) {
-      setCurrentStep(prev => prev + 1);
-    }
+  const handleGenderSelect = (gender: string) => {
+    setFormData(prev => ({ ...prev, gender }));
+  };
+
+  const handleStyleSelect = (style: string) => {
+    setFormData(prev => ({ ...prev, style }));
   };
 
   const handleBack = () => {
@@ -132,7 +145,7 @@ const StoryForm = ({ onSubmit, isGenerating }: StoryFormProps) => {
                 <Button
                   key={option.value}
                   variant={formData.gender === option.value ? "default" : "outline"}
-                  onClick={() => setFormData(prev => ({ ...prev, gender: option.value }))}
+                  onClick={() => handleGenderSelect(option.value)}
                   className="h-12 text-base"
                 >
                   {option.label}
@@ -185,7 +198,7 @@ const StoryForm = ({ onSubmit, isGenerating }: StoryFormProps) => {
                   className={`cursor-pointer transition-all hover:scale-105 ${
                     formData.style === option.value ? 'ring-2 ring-primary bg-primary/5' : ''
                   }`}
-                  onClick={() => setFormData(prev => ({ ...prev, style: option.value }))}
+                  onClick={() => handleStyleSelect(option.value)}
                 >
                   <CardContent className="p-4 text-center">
                     <div className="text-2xl mb-2">{option.icon}</div>
@@ -252,16 +265,7 @@ const StoryForm = ({ onSubmit, isGenerating }: StoryFormProps) => {
                 Back
               </Button>
 
-              {currentStep < 5 ? (
-                <Button
-                  onClick={handleNext}
-                  disabled={!isStepValid()}
-                  className="px-6"
-                >
-                  Next
-                  <ChevronRight className="w-4 h-4 ml-2" />
-                </Button>
-              ) : (
+              {currentStep === 5 && (
                 <Button
                   onClick={handleSubmit}
                   disabled={!isFormValid() || isGenerating}
