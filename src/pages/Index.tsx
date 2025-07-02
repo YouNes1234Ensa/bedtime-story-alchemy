@@ -1,46 +1,28 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
-import ApiKeyInput from '@/components/ApiKeyInput';
 import StoryForm from '@/components/StoryForm';
 import StoryDisplay from '@/components/StoryDisplay';
-import { ClaudeService } from '@/services/claudeService';
+import { generateMockStory } from '@/services/storyGenerator';
 import type { StoryFormData, GeneratedStory } from '@/types/story';
 
-type AppState = 'api-key' | 'form' | 'story';
+type AppState = 'form' | 'story';
 
 const Index = () => {
-  const [currentState, setCurrentState] = useState<AppState>('api-key');
-  const [claudeService, setClaudeService] = useState<ClaudeService | null>(null);
+  const [currentState, setCurrentState] = useState<AppState>('form');
   const [generatedStory, setGeneratedStory] = useState<GeneratedStory | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // Check for stored API key on mount
-  useEffect(() => {
-    const storedApiKey = localStorage.getItem('claude-api-key');
-    if (storedApiKey) {
-      const service = new ClaudeService(storedApiKey);
-      setClaudeService(service);
-      setCurrentState('form');
-    }
-  }, []);
-
-  const handleApiKeySubmit = (apiKey: string) => {
-    localStorage.setItem('claude-api-key', apiKey);
-    const service = new ClaudeService(apiKey);
-    setClaudeService(service);
-    setCurrentState('form');
-    toast.success('API key saved successfully!');
-  };
-
   const handleStorySubmit = async (formData: StoryFormData) => {
-    if (!claudeService) return;
-
     setIsGenerating(true);
     
     try {
       console.log('Generating story with form data:', formData);
-      const { title, content } = await claudeService.generateStory(formData);
+      
+      // Simulate API delay for better UX
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const { title, content } = generateMockStory(formData);
       
       const story: GeneratedStory = {
         title,
@@ -53,7 +35,7 @@ const Index = () => {
       toast.success('Your magical story is ready!');
     } catch (error) {
       console.error('Error generating story:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to generate story. Please try again.');
+      toast.error('Failed to generate story. Please try again.');
     } finally {
       setIsGenerating(false);
     }
@@ -69,17 +51,7 @@ const Index = () => {
     setGeneratedStory(null);
   };
 
-  const handleBackToApiKey = () => {
-    localStorage.removeItem('claude-api-key');
-    setClaudeService(null);
-    setCurrentState('api-key');
-    setGeneratedStory(null);
-  };
-
   switch (currentState) {
-    case 'api-key':
-      return <ApiKeyInput onApiKeySubmit={handleApiKeySubmit} />;
-    
     case 'form':
       return (
         <StoryForm 
